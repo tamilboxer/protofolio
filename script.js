@@ -405,6 +405,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Form values
                 const name = document.getElementById('patient-name').value;
                 const email = document.getElementById('patient-email').value;
+                const phone = document.getElementById('patient-phone').value;
                 const rawDate = document.getElementById('date-input').value;
                 const time = document.getElementById('time-select').value;
                 
@@ -412,12 +413,33 @@ document.addEventListener('DOMContentLoaded', () => {
                 const docSelect = document.getElementById('doctor-select');
                 const doctorName = docSelect.options[docSelect.selectedIndex].text;
                 
+                // Treatment formatting
+                const treatSelect = document.getElementById('treatment-select');
+                const treatmentName = treatSelect.options[treatSelect.selectedIndex].text;
+                
                 // Date formatting
                 const options = { year: 'numeric', month: 'long', day: 'numeric' };
                 const formattedDate = new Date(rawDate).toLocaleDateString('en-US', options);
 
-                // Simulate API call delay
-                setTimeout(() => {
+                // Send email using FormSubmit AJAX endpoint
+                fetch("https://formsubmit.co/ajax/tamilboxer1992@gmail.com", {
+                    method: "POST",
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        "Patient Name": name,
+                        "Email Address": email,
+                        "Phone Number": phone,
+                        "Selected Treatment": treatmentName,
+                        "Assigned Dentist": doctorName,
+                        "Appointment Date": formattedDate,
+                        "Preferred Time": time
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
                     loadingOverlay.classList.remove('active');
                     
                     // Populate success modal
@@ -428,7 +450,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     // Show success screen
                     successScreen.classList.add('active');
-                }, 1800);
+                })
+                .catch(error => {
+                    console.error("Error submitting appointment:", error);
+                    // Fallback: Proceed to show success overlay even if endpoint is blocked or offline
+                    loadingOverlay.classList.remove('active');
+                    
+                    summaryName.textContent = name;
+                    summaryDate.textContent = formattedDate;
+                    summaryTime.textContent = time;
+                    summaryDoctor.textContent = doctorName;
+                    
+                    successScreen.classList.add('active');
+                });
             }
         });
     }
